@@ -350,6 +350,27 @@ app = dash.Dash(__name__, external_stylesheets=[fonts_path])
 
 server = app.server
 
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>COVID19 Migrant Worker Dorms</title>
+        {%favicon%}
+        {%css%}
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+        <div>Made with <span style="color: #e25555;">&hearts;</span> in Singapore</div>
+    </body>
+</html>
+'''
+
 app.layout = html.Div(children=[
     html.H2(children='COVID19 - Migrant Worker Dorm Infections'),
 
