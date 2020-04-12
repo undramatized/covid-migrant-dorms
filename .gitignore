@@ -1,0 +1,7 @@
+venv
+*.pyc
+.DS_store
+.env
+.idea/
+
+google_secrets.json
