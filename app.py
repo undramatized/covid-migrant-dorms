@@ -81,8 +81,8 @@ for val in data['newcases']:
 data['colors'] = col
 
 
-data.columns = ['date', 'dorms', 'newcases', 'cumtot', 'Address', 'y',
-       'x', 'Name', 'sizes', 'colors']
+data.columns = ['date', 'dorms', 'newcases', 'cumtot', 'Name', 'Address', 'y',
+       'x', 'sizes', 'colors']
 
 
 stdt = datetime.date(min(data['date']))
@@ -117,7 +117,7 @@ topdorms
 
 lastdata0 = pd.merge(topdorms0, adresses, how = 'left', left_on = 'dorms', right_on = 'Name')
 lastdata0 = lastdata0[~pd.isnull(lastdata0['Latitude'])]
-lastdata0.columns = ['dorms', 'newcases', 'Address', 'y', 'x', 'Name']
+lastdata0.columns = ['dorms', 'newcases', 'Name', 'Address', 'y', 'x']
 
 lastdata = pd.merge(topdorms, adresses, how = 'left', left_on = 'dorms', right_on = 'Name')
 lastdata['sizes'] = 10 + lastdata['newcases'].astype(int) / 4
@@ -138,7 +138,7 @@ for val in lastdata['newcases']:
     col.append(col0)
 lastdata['colors'] = col
 
-lastdata.columns = ['dorms', 'newcases', 'up', 'Address', 'y', 'x', 'Name','sizes', 'colors']
+lastdata.columns = ['dorms', 'newcases', 'up', 'Name', 'Address', 'y', 'x','sizes', 'colors']
 
 # # Transpose data for Area chart
 tmp = data[data['dorms'].isin(lastdata['dorms'].to_list())]
