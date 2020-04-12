@@ -344,7 +344,9 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 
-app = dash.Dash(__name__)
+
+fonts_path = 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap'
+app = dash.Dash(__name__, external_stylesheets=[fonts_path])
 
 app.layout = html.Div(children=[
     html.H2(children='COVID19 - Migrant Worker Dorm Infections'),
@@ -353,20 +355,30 @@ app.layout = html.Div(children=[
         A dashboard to visualise the infections across foreign worker dormitories.
     '''),
 
-    dcc.Graph(
-        id='cases-graph',
-        figure=chart1
-    ),
+    html.Div(className='container',
+        children=[
+        dcc.Graph(
+            id='map-graph',
+            figure=sgmap
+        ),
 
-    dcc.Graph(
-        id='dorm-area-graph',
-        figure=chart2
-    ),
+        dcc.Graph(
+            id='cases-graph',
+            figure=chart1
+        ),
 
-    dcc.Graph(
-        id='data-table',
-        figure=tab
-    ),
+        dcc.Graph(
+            id='dorm-area-graph',
+            figure=chart2
+        ),
+
+        dcc.Graph(
+            id='data-table',
+            figure=tab
+        ),
+
+    ])
+
 ])
 
 if __name__ == '__main__':
