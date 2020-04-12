@@ -359,21 +359,25 @@ app.layout = html.Div(children=[
         children=[
         dcc.Graph(
             id='map-graph',
+            className='map-component',
             figure=sgmap
         ),
 
         dcc.Graph(
             id='cases-graph',
+            className='chart-component',
             figure=chart1
         ),
 
         dcc.Graph(
             id='dorm-area-graph',
+            className='chart-component',
             figure=chart2
         ),
 
         dcc.Graph(
             id='data-table',
+            className='table-component',
             figure=tab
         ),
 

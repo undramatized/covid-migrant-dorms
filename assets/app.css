@@ -3,5 +3,22 @@ body {
 }
 
 .container {
+    text-align: center;
     background-color: #fff;
+    margin-top: 30px;
+}
+
+.map-component {
+    width: 100%;
+}
+
+.chart-component {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.table-component {
+  padding-left: 50px;
+  width: 90%;
+  overflow: scroll;
 }
