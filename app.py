@@ -27,7 +27,7 @@ for i in range(0,55):
     start = soup.find("PLN_AREA_N ") + len("PLN_AREA_N ")
     end = soup.find("PLN_AREA_C")
     region.append(soup[start:end].strip())
-    
+
 areas['region'] = region
 
 areas[['Name','region','geometry']].to_json()
@@ -59,12 +59,12 @@ dfall = dfall[dfall['newcases']!='']
 dfall['cumtot'][dfall['cumtot']==''] = 0
 dfall['date'] = [datetime.strptime(str(x), '%d/%m/%Y') for x in dfall['date']]
 
-data = pd.merge(dfall,adresses,how = 'left', left_on = 'dorms', right_on = 'Name')    
+data = pd.merge(dfall,adresses,how = 'left', left_on = 'dorms', right_on = 'Name')
 data['sizes'] = 10 + data['newcases'].astype(int) / 4
 
 
 col = []
-for val in data['newcases']: 
+for val in data['newcases']:
     if (val < 5):
         col0 = '#FFFFFF'
     elif (val < 10):
@@ -122,7 +122,7 @@ lastdata0.columns = ['dorms', 'newcases', 'Name', 'Address', 'y', 'x']
 lastdata = pd.merge(topdorms, adresses, how = 'left', left_on = 'dorms', right_on = 'Name')
 lastdata['sizes'] = 10 + lastdata['newcases'].astype(int) / 4
 col = []
-for val in lastdata['newcases']: 
+for val in lastdata['newcases']:
     if (val < 10):
         col0 = '#FFFFFF'
     elif (val < 20):
@@ -160,7 +160,7 @@ sgmap.add_trace(go.Scattermapbox(
         lon=lastdata["x"],
         mode='markers',
         marker=go.scattermapbox.Marker(
-            size=lastdata['newcases'].astype(int)*1.1, 
+            size=lastdata['newcases'].astype(int)*1.1,
             color = "black", opacity=0.7
         ),
         hoverinfo='none'
@@ -171,7 +171,7 @@ sgmap.add_trace(go.Scattermapbox(
         customdata=lastdata["dorms"],
         mode='markers',
         marker=go.scattermapbox.Marker(
-            size=lastdata['newcases'], 
+            size=lastdata['newcases'],
             color = lastdata['colors'], opacity=0.9
         ),
         hovertemplate = '<br><b>%{customdata} </b><br>' + "Total Cases: %{marker.size:,}",
@@ -182,7 +182,7 @@ sgmap.add_trace(go.Scattermapbox(
         customdata=lastdata0["dorms"],
         mode='markers',
         marker=go.scattermapbox.Marker(
-            size=6, 
+            size=6,
             color = 'black'
         ),
         hovertemplate = '<br><b>%{customdata} </b><br>' + "Total Cases: 0",
@@ -225,7 +225,7 @@ chart1.add_trace(
         y=nbcases['cumtot'],
         line=dict(color='#00bcd4', width=2),
         mode='lines+markers',
-        name='Total cases', 
+        name='Total cases',
         hovertemplate = '%{y}',
 ))
 
@@ -246,12 +246,12 @@ chart1.update_layout(
     width=900,
     template="plotly_white",
     hovermode='x unified',
-    xaxis_showgrid=True, 
+    xaxis_showgrid=True,
     yaxis_showgrid=True
 )
 chart1.update_xaxes(tickangle=-45,
                 tickmode='linear',
-                ticks="outside", 
+                ticks="outside",
                showline=True,
                rangemode="tozero")
 chart1.update_yaxes(ticks="outside",
@@ -285,21 +285,21 @@ for i in reversed(range(area_data.shape[1]-2)):
         hovertemplate = '%{y}',
 
     ))
-    
+
 chart2.update_layout(
     title_text="Number of cases over time",
     height=700,
     width=900,
     template="plotly_white",
     hovermode='x unified',
-    xaxis_showgrid=True, 
+    xaxis_showgrid=True,
     yaxis_showgrid=True,
     legend=dict(orientation='h', x = 0,y = -0.8, yanchor='bottom')
 )
 
 chart2.update_xaxes(tickangle=-45,
                 tickmode='linear',
-                ticks="outside", 
+                ticks="outside",
                showline=True,
                rangemode="tozero")
 chart2.update_yaxes(ticks="outside",
@@ -348,6 +348,8 @@ import dash_html_components as html
 fonts_path = 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap'
 app = dash.Dash(__name__, external_stylesheets=[fonts_path])
 
+server = app.server
+
 app.layout = html.Div(children=[
     html.H2(children='COVID19 - Migrant Worker Dorm Infections'),
 
@@ -387,8 +389,3 @@ app.layout = html.Div(children=[
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-
-
-
-
-
