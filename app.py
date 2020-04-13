@@ -15,56 +15,26 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 
-# # Load Shape file
-
-path = './geodata/'
-areas = gpd.read_file(path + 'master-plan-2019-planning-area-boundary-no-sea-geojson.geojson')
-
-
-region = []
-for i in range(0,55):
-    soup = BeautifulSoup(areas['Description'][i], 'html.parser').get_text()
-    start = soup.find("PLN_AREA_N ") + len("PLN_AREA_N ")
-    end = soup.find("PLN_AREA_C")
-    region.append(soup[start:end].strip())
-
-areas['region'] = region
-
-areas[['Name','region','geometry']].to_json()
+from plotly.offline import download_plotlyjs, init_notebook_mode, iplot
+from plotly.graph_objs import *
+#init_notebook_mode()
 
 
 # # Load data from Google Sheet
 
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
-# credentials = Credentials.from_service_account_file('sigrid-1362-f23b3afad1e2.json', scopes=scope)
-credentials = Credentials.from_service_account_file('google_secrets.json', scopes=scope)
+credentials = Credentials.from_service_account_file('/Users/sigrid/Documents/Better_SG/Covid_Dorms/sigrid-1362-f23b3afad1e2.json', scopes=scope)
 gc = gspread.authorize(credentials)
 dorms = gc.open("dorms numbers")
-
-
-# ## Dorms location
-adresses = pd.DataFrame(dorms.worksheet("addresses").get_all_records())
-adresses = adresses[adresses['Latitude']!='']
-
-# ## Nb of cases
-
-dfmarch = pd.DataFrame(dorms.worksheet("March").get_all_records())
-dfapril = pd.DataFrame(dorms.worksheet("April").get_all_records())
-
-dfall = pd.concat([dfmarch[['Date ','Dorms','New Cases','Cumulative total']],dfapril[['Date ','Dorms','New Cases','Cumulative total']]])
-dfall.columns = ['date', 'dorms', 'newcases', 'cumtot']
-dfall = dfall[dfall['date']!='']
-dfall = dfall[dfall['newcases']!='']
-dfall['cumtot'][dfall['cumtot']==''] = 0
-dfall['date'] = [datetime.strptime(str(x), '%d/%m/%Y') for x in dfall['date']]
-
-data = pd.merge(dfall,adresses,how = 'left', left_on = 'dorms', right_on = 'Name')
-data['sizes'] = 10 + data['newcases'].astype(int) / 4
-
-
+# All Data
+alldata = pd.DataFrame(dorms.worksheet("AllCases").get_all_records())
+alldata['NewCases'].replace('','0',inplace=True)
+alldata = alldata.astype({'Dorms':'str','Address':'str','Latitude':'float64','Longitude':'float64',
+                'NewCases':'int','CumulativeByDorm': 'int'})
+alldata['Date'] = [datetime.strptime(str(x), '%d/%m/%Y') for x in alldata['Date']]
 col = []
-for val in data['newcases']:
+for val in alldata['CumulativeByDorm']: 
     if (val < 5):
         col0 = '#FFFFFF'
     elif (val < 10):
@@ -78,121 +48,73 @@ for val in data['newcases']:
     else:
         col0 = '#ff5a00'
     col.append(col0)
-data['colors'] = col
+alldata['colors'] = col
 
 
-data.columns = ['date', 'dorms', 'newcases', 'cumtot', 'Name', 'Address', 'y',
-       'x', 'sizes', 'colors']
+# Data prep for the map
+mapdata = alldata[alldata['Date'] == max(alldata['Date'])]
+mapdata1 = mapdata[mapdata['CumulativeByDorm']>0]
+mapdata1 = mapdata1.sort_values(by = 'CumulativeByDorm', ascending = False)
+mapdata0 = mapdata[mapdata['CumulativeByDorm']==0]
 
+# Transpose data for Area chart
+tmp = alldata[alldata['Dorms'].isin(mapdata1['Dorms'].to_list())]
 
-stdt = datetime.date(min(data['date']))
-eddt = datetime.date(max(data['date']))
-stp = (eddt-stdt).days
-
-data['date2'] = [(datetime.date(x)-stdt).days for x in data['date']]
-
-
-# # Overall data for chart
-
-nbcases = dfall.groupby('date')['newcases'].sum().reset_index()
-nbcases = nbcases[nbcases['newcases']!='']
-nbcases['cumtot'] = nbcases['newcases'].cumsum()
-nbcases = nbcases.reset_index()
-
-
-# # Top 10 dorms per cumulative numbers
-
-upcases = dfall[['dorms','newcases']][dfall['date'] == eddt]
-upcases.columns = ['dorms','up']
-
-topdorms = dfall.groupby('dorms')['newcases'].sum().reset_index()
-topdorms = topdorms[topdorms['newcases']!='']
-topdorms = topdorms.sort_values(by = 'newcases', ascending = False)
-topdorms0 = topdorms[topdorms['newcases']==0]
-topdorms = pd.merge(topdorms,upcases, how = 'left')
-topdorms = topdorms.fillna(0)
-topdorms = topdorms[topdorms['newcases']>0]
-topdorms
-
-
-lastdata0 = pd.merge(topdorms0, adresses, how = 'left', left_on = 'dorms', right_on = 'Name')
-lastdata0 = lastdata0[~pd.isnull(lastdata0['Latitude'])]
-lastdata0.columns = ['dorms', 'newcases', 'Name', 'Address', 'y', 'x']
-
-lastdata = pd.merge(topdorms, adresses, how = 'left', left_on = 'dorms', right_on = 'Name')
-lastdata['sizes'] = 10 + lastdata['newcases'].astype(int) / 4
-col = []
-for val in lastdata['newcases']:
-    if (val < 10):
-        col0 = '#FFFFFF'
-    elif (val < 20):
-        col0 = '#fffcad'
-    elif (val < 30):
-        col0 = '#ffe577'
-    elif (val < 40):
-        col0 = '#ffcf86'
-    elif (val < 50):
-        col0 = '#fda63a'
-    else:
-        col0 = '#ff5a00'
-    col.append(col0)
-lastdata['colors'] = col
-
-lastdata.columns = ['dorms', 'newcases', 'up', 'Name', 'Address', 'y', 'x','sizes', 'colors']
-
-# # Transpose data for Area chart
-tmp = data[data['dorms'].isin(lastdata['dorms'].to_list())]
-tmp['newcases'] = tmp['newcases'].astype(int)
-
-area_data = tmp[['date','dorms','newcases']].set_index(['date','dorms'], drop = True).unstack('dorms').reset_index()
-area_data = area_data.fillna(0)
-a1 = area_data['newcases'].cumsum()
-area_data = pd.concat([area_data['date'],a1], axis = 1)
-xcols = ['date'] + lastdata['dorms'].to_list()
-area_data = area_data[xcols]
+transdata = tmp[['Date','Dorms','NewCases']].set_index(['Date','Dorms'], drop = True).unstack('Dorms').reset_index()
+transdata = transdata.fillna(0)
+a1 = transdata['NewCases'].cumsum()
+transdata = pd.concat([transdata['Date'],a1], axis = 1)
+xcols = ['Date'] + mapdata1['Dorms'].to_list()
+transdata = transdata[xcols]
 
 
 # # Map with plotly
 
+# Initialize figure
 sgmap = go.Figure()
+# This adds a black outline to the circles on the map
 sgmap.add_trace(go.Scattermapbox(
-        lat=lastdata["y"],
-        lon=lastdata["x"],
+        lat=mapdata1["Latitude"],
+        lon=mapdata1["Longitude"],
         mode='markers',
         marker=go.scattermapbox.Marker(
-            size=lastdata['newcases'].astype(int)*1.1,
+            size=mapdata1['CumulativeByDorm']*1.1, 
             color = "black", opacity=0.7
         ),
         hoverinfo='none'
 ))
+# Add circles on map, with size and color changing with cumulative numbers 
 sgmap.add_trace(go.Scattermapbox(
-        lat=lastdata["y"],
-        lon=lastdata["x"],
-        customdata=lastdata["dorms"],
+        lat=mapdata1["Latitude"],
+        lon=mapdata1["Longitude"],
+        customdata=mapdata1["Dorms"],
         mode='markers',
         marker=go.scattermapbox.Marker(
-            size=lastdata['newcases'],
-            color = lastdata['colors'], opacity=0.9
+            size=mapdata1['CumulativeByDorm'], 
+            color = mapdata1['colors'], opacity=0.9
         ),
         hovertemplate = '<br><b>%{customdata} </b><br>' + "Total Cases: %{marker.size:,}",
+        name = '',
 ))
+# Add small black circles for dorms witn no cases
 sgmap.add_trace(go.Scattermapbox(
-        lat=lastdata0["y"],
-        lon=lastdata0["x"],
-        customdata=lastdata0["dorms"],
+        lat=mapdata0["Latitude"],
+        lon=mapdata0["Longitude"],
+        customdata=mapdata0["Dorms"],
         mode='markers',
         marker=go.scattermapbox.Marker(
-            size=6,
+            size=6, 
             color = 'black'
         ),
         hovertemplate = '<br><b>%{customdata} </b><br>' + "Total Cases: 0",
+        name = '',
     ))
-
+# Resize the circles 
 sgmap.update_traces(
     mode='markers',
     marker={'sizemode':'area',
             'sizeref':0.1})
-
+# Layout update, centers the map, zoom in onto the map
 sgmap.update_layout(
     hovermode='closest',
     mapbox=dict(
@@ -205,35 +127,45 @@ sgmap.update_layout(
         pitch=0,
         zoom=10.5
     ),
-    showlegend=False
+    showlegend=False,
+    xaxis_fixedrange=True,
+    yaxis_fixedrange=True,
+    
 )
 
-sgmap.update_layout(mapbox_style="carto-positron")
-sgmap.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-# sgmap.show()
-# sgmap.write_html("Map.html")
+sgmap.update_layout(mapbox_style="carto-positron") # style of the mapbox
+sgmap.update_layout(margin={"r":0,"t":0,"l":0,"b":0}) # reduce margins
+sgmap.show()
+#sgmap.write_html("Map.html")
 
 
 # # Bar chart in plotly
-nbcases['tooltip'] = [x.strftime("%d %b") for x in nbcases['date']]
+nbcases = alldata.groupby('Date')['NewCases'].sum().reset_index()
+nbcases = nbcases[nbcases['NewCases']!='']
+nbcases['CumulativeByDorm'] = nbcases['NewCases'].cumsum()
+nbcases = nbcases.reset_index()
+nbcases['tooltip'] = [x.strftime("%d %b") for x in nbcases['Date']]
 
+#alldata['tooltip'] = [x.strftime("%d %b") for x in alldata['Date']]
+
+# Initialize figure
 chart1 = go.Figure()
-
+# Line chart 
 chart1.add_trace(
     go.Scatter(
-        x=nbcases['date'],
-        y=nbcases['cumtot'],
+        x=nbcases['Date'],
+        y=nbcases['CumulativeByDorm'],
         line=dict(color='#00bcd4', width=2),
         mode='lines+markers',
-        name='Total cases',
+        name='Total cases', 
         hovertemplate = '%{y}',
 ))
 
 
 chart1.add_trace(
     go.Bar(
-        x=nbcases['date'],
-        y=nbcases['newcases'],
+        x=nbcases['Date'],
+        y=nbcases['NewCases'],
         name = 'New cases',
         marker_color = '#b2ebf2',
         hovertemplate = '%{y}',
@@ -246,89 +178,91 @@ chart1.update_layout(
     width=900,
     template="plotly_white",
     hovermode='x unified',
-    xaxis_showgrid=True,
-    yaxis_showgrid=True
+    xaxis_showgrid=True, 
+    yaxis_showgrid=True,
+    xaxis_fixedrange=True,
+    yaxis_fixedrange=True,
 )
 chart1.update_xaxes(tickangle=-45,
                 tickmode='linear',
-                ticks="outside",
+                ticks="outside", 
                showline=True,
                rangemode="tozero")
 chart1.update_yaxes(ticks="outside",
                showline=True,
                 rangemode="tozero")
 
-# chart1.show()
-# chart1.write_html("CumulativeChart.html")
+chart1.show()
+#chart1.write_html("CumulativeChart.html")
 
 
 # # Area chart in plotly
-tp = area_data[['date']+[x for x in area_data.columns[1:-1]][::-1]]
-area_data2 = (tp.set_index('date').stack()).reset_index()
-area_data2.columns = ['date','dorms','cumtot']
-area_data2.head()
+transdata['tooltip'] = [x.strftime("%d %b") for x in transdata['Date']]
+acol = magma(transdata.shape[1]-2)[::-1]
 
+# Initialize the figure
 chart2 = go.Figure()
-
-acol = magma(area_data.shape[1]-2)[::-1]
-
-for i in reversed(range(area_data.shape[1]-2)):
-    # print("THIS IS AREA_DATA:", area_data)
-    yname = area_data.drop(['date'], axis = 1).columns[i]
-    y = area_data.drop(['date'], axis = 1)[yname]
+# Area chart for each series
+for i in reversed(range(transdata.shape[1]-2)):
+    yname = transdata.drop(['Date','tooltip'], axis = 1).columns[i]
+    y = transdata.drop(['Date','tooltip'], axis = 1)[yname]
     chart2.add_trace(go.Scatter(
-        x=area_data['date'], y=y,
+        x=transdata['Date'], 
+        y=y,
         mode='lines',
-        line=dict(width=0.5, color=acol[i]),
+        line=dict(width=0.5, color='lightgray'),
+        fillcolor=acol[i],
         stackgroup='one',
         name = yname,
         hovertemplate = '%{y}',
-
     ))
-
+    
 chart2.update_layout(
     title_text="Number of cases over time",
     height=700,
     width=900,
     template="plotly_white",
     hovermode='x unified',
-    xaxis_showgrid=True,
+    xaxis_showgrid=True, 
     yaxis_showgrid=True,
+    xaxis_fixedrange=True,
+    yaxis_fixedrange=True,
     legend=dict(orientation='h', x = 0,y = -0.8, yanchor='bottom')
 )
 
 chart2.update_xaxes(tickangle=-45,
                 tickmode='linear',
-                ticks="outside",
+                ticks="outside", 
                showline=True,
                rangemode="tozero")
 chart2.update_yaxes(ticks="outside",
                showline=True,
                 rangemode="tozero")
 
-# chart2.show()
-# chart2.write_html("AreaChart.html")
+chart2.show()
+#chart2.write_html("AreaChart.html")
 
 
 # # Table in plotly
 
-area_data['tooltip'] = [x.strftime("%d %b") for x in area_data['date']]
+#area_data['tooltip'] = [x.strftime("%d %b") for x in area_data['date']]
 
 tab = go.Figure(data=[go.Table(
     columnwidth = 50,
-    header=dict(values=list(area_data.columns[:-1]),
+    header=dict(values=list(transdata.columns[:-1]),
                 line_color='darkslategray',
                 fill_color='lightgrey',
                 align='left'),
-    cells=dict(values=[area_data['tooltip']] + [area_data[col] for col in area_data.columns[1:-1]],
+    cells=dict(values=[transdata['tooltip']] + [transdata[col] for col in transdata.columns[1:-1]],
                fill_color='whitesmoke',
                line_color='darkslategray',
                align='right'))
 ])
 
 tab.update_layout(
+    title_text="Detailed Number of cases per Dorm over Time",
     width=1700,
-    height=500,
+    height=600,
     margin=dict(
         l=1,
         r=1,
@@ -336,8 +270,10 @@ tab.update_layout(
     ),
 )
 
-# tab.show()
-# tab.write_html("Table.html")
+tab.show()
+#tab.write_html("Table.html")
+
+
 
 # APP SERVER
 import dash
