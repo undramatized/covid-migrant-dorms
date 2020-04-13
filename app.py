@@ -6,6 +6,8 @@ import os
 from bs4 import BeautifulSoup
 from datetime import datetime
 import math
+from dotenv import load_dotenv
+load_dotenv()
 
 import plotly.graph_objects as go
 
@@ -24,7 +26,7 @@ from plotly.graph_objs import *
 
 scope = ['https://spreadsheets.google.com/feeds',
          'https://www.googleapis.com/auth/drive']
-credentials = Credentials.from_service_account_file('/Users/sigrid/Documents/Better_SG/Covid_Dorms/sigrid-1362-f23b3afad1e2.json', scopes=scope)
+credentials = Credentials.from_service_account_file(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"), scopes=scope)
 gc = gspread.authorize(credentials)
 dorms = gc.open("dorms numbers")
 # All Data
@@ -34,7 +36,7 @@ alldata = alldata.astype({'Dorms':'str','Address':'str','Latitude':'float64','Lo
                 'NewCases':'int','CumulativeByDorm': 'int'})
 alldata['Date'] = [datetime.strptime(str(x), '%d/%m/%Y') for x in alldata['Date']]
 col = []
-for val in alldata['CumulativeByDorm']: 
+for val in alldata['CumulativeByDorm']:
     if (val < 5):
         col0 = '#FFFFFF'
     elif (val < 10):
@@ -78,19 +80,19 @@ sgmap.add_trace(go.Scattermapbox(
         lon=mapdata1["Longitude"],
         mode='markers',
         marker=go.scattermapbox.Marker(
-            size=mapdata1['CumulativeByDorm']*1.1, 
+            size=mapdata1['CumulativeByDorm']*1.1,
             color = "black", opacity=0.7
         ),
         hoverinfo='none'
 ))
-# Add circles on map, with size and color changing with cumulative numbers 
+# Add circles on map, with size and color changing with cumulative numbers
 sgmap.add_trace(go.Scattermapbox(
         lat=mapdata1["Latitude"],
         lon=mapdata1["Longitude"],
         customdata=mapdata1["Dorms"],
         mode='markers',
         marker=go.scattermapbox.Marker(
-            size=mapdata1['CumulativeByDorm'], 
+            size=mapdata1['CumulativeByDorm'],
             color = mapdata1['colors'], opacity=0.9
         ),
         hovertemplate = '<br><b>%{customdata} </b><br>' + "Total Cases: %{marker.size:,}",
@@ -103,13 +105,13 @@ sgmap.add_trace(go.Scattermapbox(
         customdata=mapdata0["Dorms"],
         mode='markers',
         marker=go.scattermapbox.Marker(
-            size=6, 
+            size=6,
             color = 'black'
         ),
         hovertemplate = '<br><b>%{customdata} </b><br>' + "Total Cases: 0",
         name = '',
     ))
-# Resize the circles 
+# Resize the circles
 sgmap.update_traces(
     mode='markers',
     marker={'sizemode':'area',
@@ -130,12 +132,12 @@ sgmap.update_layout(
     showlegend=False,
     xaxis_fixedrange=True,
     yaxis_fixedrange=True,
-    
+
 )
 
 sgmap.update_layout(mapbox_style="carto-positron") # style of the mapbox
 sgmap.update_layout(margin={"r":0,"t":0,"l":0,"b":0}) # reduce margins
-sgmap.show()
+# sgmap.show()
 #sgmap.write_html("Map.html")
 
 
@@ -150,14 +152,14 @@ nbcases['tooltip'] = [x.strftime("%d %b") for x in nbcases['Date']]
 
 # Initialize figure
 chart1 = go.Figure()
-# Line chart 
+# Line chart
 chart1.add_trace(
     go.Scatter(
         x=nbcases['Date'],
         y=nbcases['CumulativeByDorm'],
         line=dict(color='#00bcd4', width=2),
         mode='lines+markers',
-        name='Total cases', 
+        name='Total cases',
         hovertemplate = '%{y}',
 ))
 
@@ -178,21 +180,21 @@ chart1.update_layout(
     width=900,
     template="plotly_white",
     hovermode='x unified',
-    xaxis_showgrid=True, 
+    xaxis_showgrid=True,
     yaxis_showgrid=True,
     xaxis_fixedrange=True,
     yaxis_fixedrange=True,
 )
 chart1.update_xaxes(tickangle=-45,
                 tickmode='linear',
-                ticks="outside", 
+                ticks="outside",
                showline=True,
                rangemode="tozero")
 chart1.update_yaxes(ticks="outside",
                showline=True,
                 rangemode="tozero")
 
-chart1.show()
+# chart1.show()
 #chart1.write_html("CumulativeChart.html")
 
 
@@ -207,7 +209,7 @@ for i in reversed(range(transdata.shape[1]-2)):
     yname = transdata.drop(['Date','tooltip'], axis = 1).columns[i]
     y = transdata.drop(['Date','tooltip'], axis = 1)[yname]
     chart2.add_trace(go.Scatter(
-        x=transdata['Date'], 
+        x=transdata['Date'],
         y=y,
         mode='lines',
         line=dict(width=0.5, color='lightgray'),
@@ -216,14 +218,14 @@ for i in reversed(range(transdata.shape[1]-2)):
         name = yname,
         hovertemplate = '%{y}',
     ))
-    
+
 chart2.update_layout(
     title_text="Number of cases over time",
     height=700,
     width=900,
     template="plotly_white",
     hovermode='x unified',
-    xaxis_showgrid=True, 
+    xaxis_showgrid=True,
     yaxis_showgrid=True,
     xaxis_fixedrange=True,
     yaxis_fixedrange=True,
@@ -232,14 +234,14 @@ chart2.update_layout(
 
 chart2.update_xaxes(tickangle=-45,
                 tickmode='linear',
-                ticks="outside", 
+                ticks="outside",
                showline=True,
                rangemode="tozero")
 chart2.update_yaxes(ticks="outside",
                showline=True,
                 rangemode="tozero")
 
-chart2.show()
+# chart2.show()
 #chart2.write_html("AreaChart.html")
 
 
@@ -270,7 +272,7 @@ tab.update_layout(
     ),
 )
 
-tab.show()
+# tab.show()
 #tab.write_html("Table.html")
 
 
