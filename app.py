@@ -227,7 +227,7 @@ chart2.update_layout(
     yaxis_showgrid=True,
     xaxis_fixedrange=True,
     yaxis_fixedrange=True,
-    legend=dict(orientation='h', x = 0,y = -0.8, yanchor='bottom')
+    legend=dict(orientation='h', x = 0,y = -1.2, yanchor='bottom')
 )
 
 chart2.update_xaxes(tickangle=-45,
