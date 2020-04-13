@@ -12,6 +12,11 @@ body {
     width: 100%;
 }
 
+.chart-container {
+  display: inline-block;
+  text-align: center;
+}
+
 .chart-component {
   display: inline-block;
   vertical-align: top;
@@ -21,4 +26,20 @@ body {
   padding-left: 50px;
   width: 95%;
   overflow: scroll;
+}
+
+.usage-tip {
+  background-color: #eee;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 200;
+  margin: 10px auto;
+  padding: 10px;
+  width: 70%;
+}
+
+@media (hover: hover) {
+  .usage-tip {
+    display: none;
+  }
 }

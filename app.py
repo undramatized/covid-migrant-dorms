@@ -324,11 +324,17 @@ app.layout = html.Div(children=[
             figure=sgmap
         ),
 
-        dcc.Graph(
+        html.Div(className='chart-container',
+        children=[
+            dcc.Graph(
             id='cases-graph',
             className='chart-component',
             figure=chart1
-        ),
+            ),
+
+            html.P(className='usage-tip',
+            children='For mobile usage: \nTap anywhere on the chart to see details in a popover.\nSlide or pinch on chart to remove the popover.'),
+        ]),
 
         dcc.Graph(
             id='dorm-area-graph',
