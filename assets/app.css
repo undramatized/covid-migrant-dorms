@@ -37,9 +37,3 @@ body {
   padding: 10px;
   width: 70%;
 }
-
-@media (hover: hover) {
-  .usage-tip {
-    display: none;
-  }
-}
