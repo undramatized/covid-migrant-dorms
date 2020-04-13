@@ -1,1 +1,1 @@
-echo ${GOOGLE_CREDENTIALS} > /app/google-secrets.json
+echo ${GOOGLE_CREDENTIALS} > /app/google_secrets.json
