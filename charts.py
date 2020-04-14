@@ -32,8 +32,7 @@ def loaddata():
     # All Data
     alldata = pd.DataFrame(dorms.worksheet("AllCases").get_all_records())
     alldata['NewCases'].replace('','0',inplace=True)
-    alldata = alldata.astype({'Dorms':'str','Address':'str','Latitude':'float64','Longitude':'float64',
-                    'NewCases':'int','CumulativeByDorm': 'int'})
+    alldata = alldata.astype({'Dorms':'str','Address':'str','Latitude':'float64','Longitude':'float64','NewCases':'int','CumulativeByDorm': 'int'})
     alldata['Date'] = [datetime.strptime(str(x), '%d/%m/%Y') for x in alldata['Date']]
     col = []
     for val in alldata['CumulativeByDorm']:
