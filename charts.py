@@ -288,3 +288,18 @@ def getdatatable(transdata):
     # tab.show()
     #tab.write_html("Table.html")
     return tab
+
+
+def loadtable():
+    scope = ['https://spreadsheets.google.com/feeds',
+             'https://www.googleapis.com/auth/drive']
+    credentials = Credentials.from_service_account_file(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"), scopes=scope)
+    gc = gspread.authorize(credentials)
+    dorms = gc.open("dorms numbers")
+    # All Data
+    alldata = pd.DataFrame(dorms.worksheet("Clusters").get_all_records())
+    print(alldata.describe())
+
+
+if __name__ == '__main__':
+    loadtable()

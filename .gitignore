@@ -1,4 +1,5 @@
 venv
+cache-directory
 *.pyc
 .DS_store
 .env

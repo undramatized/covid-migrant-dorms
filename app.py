@@ -3,6 +3,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from charts import *
+from flask_caching import Cache
 
 
 fonts_path = 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap'
@@ -31,7 +32,16 @@ app.index_string = '''
 </html>
 '''
 
+cache = Cache(app.server, config={
+    'CACHE_TYPE': 'filesystem',
+    'CACHE_DIR': 'cache-directory'
+})
+
+TIMEOUT = 3600
+
+@cache.memoize(timeout=TIMEOUT)
 def serve_layout():
+    print("running serve layout for data refresh")
     alldata = loaddata()
     mapdata = getmapdata(alldata)
     transdata = gettransdata(alldata, mapdata[1])
