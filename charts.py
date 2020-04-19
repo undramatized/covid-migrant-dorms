@@ -3,10 +3,11 @@ from datetime import datetime
 import math
 import pandas as pd
 import json
+import os
 import requests
 import datetime
-#from dotenv import load_dotenv
-#load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 import plotly.graph_objects as go
 
@@ -71,10 +72,10 @@ def load_data_fromJSON():
 
 
 # Load data from Google Sheet
-def load_data_fromGsheet():
+def load_data_fromGsheet(allcases):
     scope = ['https://spreadsheets.google.com/feeds',
              'https://www.googleapis.com/auth/drive']
-    credentials = Credentials.from_service_account_file('/Users/sigrid/Documents/Better_SG/Covid_Dorms/sigrid-1362-f23b3afad1e2.json', scopes=scope)
+    credentials = Credentials.from_service_account_file(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"), scopes=scope)
     gc = gspread.authorize(credentials)
     dorms = gc.open("dorms numbers")
     refclusters = pd.DataFrame(dorms.worksheet("clusters").get_all_records())
@@ -120,7 +121,7 @@ def getmapdata(data,migclusters, migclusters_expd):
     return mapdata
     
 
-def gettransdata(data,migclusters, migclusters_expd):
+def gettransdata(data,migclusters, migclusters_expd, mapdata):
 # Data for area chart: transposed matrix
     chartdata = data[data['IsDorm']=='y'].groupby(['RowId','Id','Date','IsDorm'])['Name'].first().reset_index()
     areadata0 = chartdata[chartdata['IsDorm'] == 'y'].groupby(['Date','Name']).size().reset_index(name='NewCases')

@@ -40,14 +40,19 @@ cache = Cache(app.server, config={
 TIMEOUT = 3600
 
 @cache.memoize(timeout=TIMEOUT)
+def get_data_from_source():
+    allcases = load_data_fromJSON()
+    alldata = load_data_fromGsheet(allcases)
+    data = source_data(allcases, alldata[0])
+
+    return [data, alldata]
+
 def serve_layout():
     print("running serve layout for data refresh")
-    allcases = load_data_fromJSON()
-    alldata = load_data_fromGsheet()
-    data = source_data(allcases,alldata[0])    
+    [data, alldata] = get_data_from_source()
 
     mapdata = getmapdata(data,alldata[1],alldata[2])
-    transdata = gettransdata(data,alldata[1],alldata[2])
+    transdata = gettransdata(data,alldata[1],alldata[2], mapdata)
 
     mapchart = getmapchart(mapdata)
     caseschart = getcaseschart(data)
@@ -86,6 +91,12 @@ def serve_layout():
                 id='dorm-area-graph',
                 className='chart-component',
                 figure=dormschart
+            ),
+
+            dcc.Graph(
+                id='wp-bar-graph',
+                className='chart-component',
+                figure=wpchart
             ),
 
             dcc.Graph(
