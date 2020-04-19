@@ -88,15 +88,15 @@ def serve_layout():
             ]),
 
             dcc.Graph(
-                id='dorm-area-graph',
-                className='chart-component',
-                figure=dormschart
-            ),
-
-            dcc.Graph(
                 id='wp-bar-graph',
                 className='chart-component',
                 figure=wpchart
+            ),
+
+            dcc.Graph(
+                id='dorm-area-graph',
+                className='chart-component',
+                figure=dormschart
             ),
 
             dcc.Graph(
