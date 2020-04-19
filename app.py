@@ -42,12 +42,16 @@ TIMEOUT = 3600
 @cache.memoize(timeout=TIMEOUT)
 def serve_layout():
     print("running serve layout for data refresh")
-    alldata = loaddata()
-    mapdata = getmapdata(alldata)
-    transdata = gettransdata(alldata, mapdata[1])
+    allcases = load_data_fromJSON()
+    alldata = load_data_fromGsheet()
+    data = source_data(allcases,alldata[0])    
 
-    mapchart = getmapchart(mapdata[0], mapdata[1])
-    caseschart = getcaseschart(alldata)
+    mapdata = getmapdata(data,alldata[1],alldata[2])
+    transdata = gettransdata(data,alldata[1],alldata[2])
+
+    mapchart = getmapchart(mapdata)
+    caseschart = getcaseschart(data)
+    wpchart = getwpcasesbarchart(data)
     dormschart = getdormcaseschart(transdata)
     tablechart = getdatatable(transdata)
 
