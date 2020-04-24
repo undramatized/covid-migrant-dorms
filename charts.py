@@ -24,7 +24,7 @@ from pylab import *
 # Load data from Google Sheet
 def load_data_fromJSON():
     # Load JSON file
-    jsonfile = "https://raw.githubusercontent.com/wentjun/covid-19-sg/feature/covid-migrant-dorm-support/src/data/covid-sg.json"
+    jsonfile = "https://raw.githubusercontent.com/wentjun/covid-19-sg/master/src/data/covid-sg.json"
     response = json.loads(requests.get(jsonfile).text)
     
     ids = []
@@ -43,12 +43,12 @@ def load_data_fromJSON():
         else:
             permit.append('')
             nationality.append(pm[0])
-        if res['properties']['clusters']==[]:
+        if res['properties']['linkedClusters']==[]:
             clusters.append([''])
             nb = len([''])
         else:
-            clusters.append(res['properties']['clusters'])
-            nb = len(res['properties']['clusters'])
+            clusters.append(res['properties']['linkedClusters'])
+            nb = len(res['properties']['linkedClusters'])
         nclust.append(nb)
     
     rowid = list(range(1,len(ids)+1))
